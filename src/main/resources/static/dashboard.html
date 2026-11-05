@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | AI Interview Coach</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header class="navbar">
+    <a href="/dashboard.html" class="brand">
+      <div class="brand-icon">⚡</div>
+      <span>AI Coach Interview</span>
+    </a>
+    <div id="navbar-auth-section" class="nav-links"></div>
+  </header>
+
+  <div class="dashboard-container">
+
+    <!-- User Profile Hero Banner -->
+    <div class="dashboard-hero">
+      <div style="display:flex;align-items:center;gap:1.25rem;">
+        <img id="userAvatar" src="" alt="Avatar" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid #6366f1;box-shadow:0 0 15px rgba(99,102,241,0.3);" />
+        <div>
+          <div style="display:flex;align-items:center;gap:0.6rem;">
+            <h2 id="userName" style="font-size:1.5rem;font-weight:700;color:#fff;">Loading...</h2>
+            <span id="userRoleBadge" class="badge badge-primary">Candidate</span>
+          </div>
+          <p id="userEmail" style="color:var(--text-secondary);font-size:0.95rem;margin-top:0.2rem;">...</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:0.75rem;">
+        <button onclick="showNewInterviewView()" class="btn btn-primary">+ New Mock Interview</button>
+        <button onclick="loadHistoryView()" class="btn btn-secondary">📜 My History</button>
+      </div>
+    </div>
+
+    <!-- VIEW 1: Start Interview Configuration -->
+    <div id="viewStartInterview" class="card">
+      <div style="margin-bottom:1.5rem;">
+        <h2 style="font-size:1.4rem;font-weight:700;margin-bottom:0.4rem;">Configure Your AI Mock Interview</h2>
+        <p style="color:var(--text-secondary);font-size:0.95rem;">Select your target technical role and seniority level. Our AI Coach will tailor the interview questions and evaluations accordingly.</p>
+      </div>
+
+      <form id="startInterviewForm">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:1.5rem;margin-bottom:1.5rem;">
+          <!-- Target Role -->
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="jobRole">Target Job Domain / Role</label>
+            <select id="jobRole" class="form-input" style="cursor:pointer;" required>
+              <option value="Full Stack Java & Spring Boot Developer">Full Stack Java & Spring Boot Developer</option>
+              <option value="Python, AI & Backend Engineer">Python, AI & Backend Engineer</option>
+              <option value="Frontend React & Web Developer">Frontend React & Web Developer</option>
+              <option value="System Design & Cloud Architecture">System Design & Cloud Architecture</option>
+              <option value="DevOps, CI/CD & Cloud Infrastructure">DevOps, CI/CD & Cloud Infrastructure</option>
+              <option value="Behavioral & HR Leadership (STAR Method)">Behavioral & HR Leadership (STAR Method)</option>
+            </select>
+          </div>
+
+          <!-- Seniority Level -->
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="experienceLevel">Seniority Level</label>
+            <select id="experienceLevel" class="form-input" style="cursor:pointer;" required>
+              <option value="Junior">Junior / Associate (0–2 years)</option>
+              <option value="Mid-Level" selected>Mid-Level Engineer (2–5 years)</option>
+              <option value="Senior">Senior / Tech Lead (5+ years)</option>
+            </select>
+          </div>
+
+          <!-- Question Count -->
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="questionCount">Number of Questions</label>
+            <select id="questionCount" class="form-input" style="cursor:pointer;">
+              <option value="3">Quick Drill (3 Questions)</option>
+              <option value="5" selected>Standard Round (5 Questions)</option>
+              <option value="7">Deep Dive (7 Questions)</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" id="startBtn" class="btn btn-primary" style="padding:0.8rem 1.8rem;">
+          🚀 Start Mock Interview Session
+        </button>
+      </form>
+    </div>
+
+    <!-- VIEW 2: Active Live Interview Session -->
+    <div id="viewActiveInterview" class="card" style="display:none;">
+      <div class="interview-coach-header">
+        <div class="coach-avatar">🤖</div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
+            <div>
+              <h3 id="sessionRoleTitle" style="font-size:1.15rem;font-weight:700;color:#fff;">Interview Round</h3>
+              <span id="sessionLevelBadge" class="badge badge-primary">Mid-Level</span>
+            </div>
+            <div id="questionProgress" style="font-weight:600;color:var(--text-secondary);font-size:0.95rem;">
+              Question 1 of 5
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-bar-wrap">
+        <div id="sessionProgressFill" class="progress-fill" style="width: 20%;"></div>
+      </div>
+
+      <!-- Question Box -->
+      <div style="margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem;">
+        <span id="questionCategory" class="badge badge-warning">Technical</span>
+        <span style="font-size:0.85rem;color:var(--text-muted);">AI Interviewer asks:</span>
+      </div>
+      <div id="questionText" class="question-box">
+        Loading interview question...
+      </div>
+
+      <!-- Answer Input -->
+      <form id="answerForm">
+        <label for="answerInput" style="display:block;font-size:0.9rem;font-weight:600;margin-bottom:0.4rem;color:#e5e7eb;">
+          Your Response:
+        </label>
+        <textarea id="answerInput" class="answer-area" placeholder="Type your detailed answer or click 'Record with Microphone' to speak naturally..."></textarea>
+
+        <div class="voice-controls">
+          <div style="display:flex;gap:0.5rem;align-items:center;">
+            <button type="button" id="micBtn" class="mic-btn">
+              <span>🎙️</span> <span id="micBtnText">Record with Microphone</span>
+            </button>
+            <span id="speechStatus" style="font-size:0.8rem;color:var(--text-muted);"></span>
+          </div>
+          <div style="font-size:0.85rem;color:var(--text-secondary);">
+            <span id="wordCount">0</span> words
+          </div>
+        </div>
+
+        <div style="display:flex;gap:1rem;justify-content:flex-end;">
+          <button type="submit" id="submitAnswerBtn" class="btn btn-primary" style="padding:0.75rem 1.75rem;">
+            ⚡ Submit to AI Coach
+          </button>
+        </div>
+      </form>
+
+      <!-- Real-time AI Evaluation Card -->
+      <div id="evaluationSection" style="display:none;" class="feedback-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
+          <h4 style="font-size:1.1rem;color:#fff;font-weight:700;">AI Coach Feedback & Assessment</h4>
+          <div id="evalScoreBadge" class="score-badge score-high">Score: 85/100</div>
+        </div>
+        <div id="evalFeedbackText" style="margin:0.75rem 0;line-height:1.6;color:#e2e8f0;"></div>
+
+        <details style="margin-top:1rem;cursor:pointer;">
+          <summary style="font-weight:600;color:#818cf8;outline:none;user-select:none;">
+            📘 View Recommended Model Answer
+          </summary>
+          <div id="evalModelAnswer" class="model-answer-box"></div>
+        </details>
+
+        <div style="display:flex;justify-content:flex-end;margin-top:1.5rem;">
+          <button id="nextQuestionBtn" class="btn btn-primary">
+            Next Question →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: Final Session Summary Report -->
+    <div id="viewSummary" class="card" style="display:none;">
+      <div style="text-align:center;padding:2rem 1rem;border-bottom:1px solid var(--border-color);">
+        <div style="font-size:3.5rem;margin-bottom:0.5rem;">🏆</div>
+        <h2 style="font-size:1.8rem;font-weight:800;color:#fff;margin-bottom:0.5rem;">Interview Complete!</h2>
+        <p id="summaryRoleText" style="color:var(--text-secondary);font-size:1rem;"></p>
+        <div id="summaryScoreBadge" class="score-badge score-high" style="font-size:2rem;margin:1rem 0;padding:0.5rem 1.5rem;">
+          Final Score: 88/100
+        </div>
+        <div id="summaryAdviceBox" style="max-width:700px;margin:0 auto;text-align:left;background:var(--bg-card);padding:1.5rem;border-radius:var(--radius-sm);white-space:pre-line;color:#cbd5e1;line-height:1.6;border-left:4px solid #6366f1;">
+        </div>
+      </div>
+
+      <div style="margin-top:2rem;">
+        <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:1rem;color:#fff;">Question-by-Question Breakdown</h3>
+        <div id="summaryQuestionList" style="display:flex;flex-direction:column;gap:1rem;"></div>
+      </div>
+
+      <div style="margin-top:2rem;display:flex;justify-content:center;gap:1rem;">
+        <button onclick="showNewInterviewView()" class="btn btn-primary">Practice Another Role</button>
+        <button onclick="loadHistoryView()" class="btn btn-secondary">View Past Interviews</button>
+      </div>
+    </div>
+
+    <!-- VIEW 4: User History List -->
+    <div id="viewHistory" class="card" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+        <div>
+          <h2 style="font-size:1.3rem;font-weight:700;color:#fff;">Your Interview History</h2>
+          <p style="color:var(--text-secondary);font-size:0.9rem;">Review all previous mock interviews and progress.</p>
+        </div>
+        <button onclick="showNewInterviewView()" class="btn btn-primary">+ New Interview</button>
+      </div>
+
+      <div id="historyTableContainer">
+        <p style="color:var(--text-secondary);">Loading your sessions...</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    // State management
+    let currentSessionId = null;
+    let currentQuestion = null;
+    let recognition = null;
+    let isRecording = false;
+
+    // Check Authentication
+    document.addEventListener('DOMContentLoaded', async () => {
+      const token = getToken();
+      if (!token) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      await loadUserProfile();
+    });
+
+    async function loadUserProfile() {
+      try {
+        const res = await authFetch('/api/user/me');
+        if (res.ok) {
+          const json = await res.json();
+          const user = json.data;
+          setUser(user);
+
+          document.getElementById('userName').innerText = user.username;
+          document.getElementById('userEmail').innerText = user.email;
+          const avatarUrl = user.profileImageUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`;
+          document.getElementById('userAvatar').src = avatarUrl;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // View Navigation Helpers
+    function hideAllViews() {
+      document.getElementById('viewStartInterview').style.display = 'none';
+      document.getElementById('viewActiveInterview').style.display = 'none';
+      document.getElementById('viewSummary').style.display = 'none';
+      document.getElementById('viewHistory').style.display = 'none';
+    }
+
+    function showNewInterviewView() {
+      hideAllViews();
+      document.getElementById('viewStartInterview').style.display = 'block';
+    }
+
+    // Start New Interview Form
+    document.getElementById('startInterviewForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const jobRole = document.getElementById('jobRole').value;
+      const experienceLevel = document.getElementById('experienceLevel').value;
+      const questionCount = parseInt(document.getElementById('questionCount').value, 10);
+      const startBtn = document.getElementById('startBtn');
+
+      startBtn.disabled = true;
+      startBtn.innerText = 'Initializing AI Coach...';
+
+      try {
+        const res = await authFetch('/api/interview/start', {
+          method: 'POST',
+          body: JSON.stringify({ jobRole, experienceLevel, questionCount })
+        });
+
+        const json = await res.json();
+
+        if (res.ok && json.success) {
+          currentSessionId = json.data.id;
+          startBtn.disabled = false;
+          startBtn.innerText = '🚀 Start Mock Interview Session';
+          launchInterviewRoom(json.data);
+        } else {
+          showToast(json.message || 'Could not start interview', 'error');
+          startBtn.disabled = false;
+          startBtn.innerText = '🚀 Start Mock Interview Session';
+        }
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+        startBtn.disabled = false;
+        startBtn.innerText = '🚀 Start Mock Interview Session';
+      }
+    });
+
+    // Launch Active Interview Room
+    async function launchInterviewRoom(session) {
+      hideAllViews();
+      document.getElementById('viewActiveInterview').style.display = 'block';
+
+      document.getElementById('sessionRoleTitle').innerText = session.jobRole;
+      document.getElementById('sessionLevelBadge').innerText = session.experienceLevel;
+
+      await fetchNextQuestion();
+    }
+
+    async function fetchNextQuestion() {
+      // Reset inputs & evaluation display
+      document.getElementById('evaluationSection').style.display = 'none';
+      document.getElementById('answerInput').value = '';
+      document.getElementById('wordCount').innerText = '0';
+      document.getElementById('submitAnswerBtn').disabled = false;
+      document.getElementById('submitAnswerBtn').innerText = '⚡ Submit to AI Coach';
+
+      try {
+        const res = await authFetch(`/api/interview/${currentSessionId}/next-question`);
+        const json = await res.json();
+
+        if (json.data) {
+          currentQuestion = json.data;
+          document.getElementById('questionText').innerText = currentQuestion.questionText;
+          document.getElementById('questionCategory').innerText = currentQuestion.category || 'Interview Question';
+          document.getElementById('questionProgress').innerText = `Question #${currentQuestion.questionOrder}`;
+        } else {
+          // All done! Show summary
+          await loadSummaryView(currentSessionId);
+        }
+      } catch (err) {
+        showToast('Failed to load next question: ' + err.message, 'error');
+      }
+    }
+
+    // Word counter
+    const answerInput = document.getElementById('answerInput');
+    answerInput.addEventListener('input', () => {
+      const words = answerInput.value.trim().split(/\s+/).filter(Boolean).length;
+      document.getElementById('wordCount').innerText = words;
+    });
+
+    // Submit Answer to AI Coach
+    document.getElementById('answerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const answer = answerInput.value.trim();
+      if (!answer) {
+        showToast('Please provide an answer before submitting.', 'warning');
+        return;
+      }
+
+      if (isRecording) stopRecording();
+
+      const submitBtn = document.getElementById('submitAnswerBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'AI Evaluating Answer...';
+
+      try {
+        const res = await authFetch(`/api/interview/${currentSessionId}/submit-answer`, {
+          method: 'POST',
+          body: JSON.stringify({
+            questionId: currentQuestion.id,
+            answer: answer
+          })
+        });
+
+        const json = await res.json();
+
+        if (res.ok && json.success) {
+          const evalData = json.data;
+          renderEvaluation(evalData);
+        } else {
+          showToast(json.message || 'Evaluation failed', 'error');
+          submitBtn.disabled = false;
+          submitBtn.innerText = '⚡ Submit to AI Coach';
+        }
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerText = '⚡ Submit to AI Coach';
+      }
+    });
+
+    function renderEvaluation(evalData) {
+      const evalSection = document.getElementById('evaluationSection');
+      const scoreBadge = document.getElementById('evalScoreBadge');
+      const feedbackText = document.getElementById('evalFeedbackText');
+      const modelAnswer = document.getElementById('evalModelAnswer');
+      const nextBtn = document.getElementById('nextQuestionBtn');
+
+      scoreBadge.innerText = `Score: ${evalData.score}/100`;
+      scoreBadge.className = 'score-badge ' + (evalData.score >= 80 ? 'score-high' : (evalData.score >= 60 ? 'score-mid' : 'score-low'));
+
+      feedbackText.innerHTML = evalData.feedback.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      modelAnswer.innerText = evalData.modelAnswer || 'No reference answer specified.';
+
+      if (evalData.sessionCompleted) {
+        nextBtn.innerText = '🎉 View Final Performance Report →';
+        nextBtn.onclick = () => loadSummaryView(currentSessionId);
+      } else {
+        nextBtn.innerText = 'Next Question →';
+        nextBtn.onclick = () => fetchNextQuestion();
+      }
+
+      evalSection.style.display = 'block';
+      evalSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // View Summary
+    async function loadSummaryView(sessionId) {
+      hideAllViews();
+      document.getElementById('viewSummary').style.display = 'block';
+
+      try {
+        const res = await authFetch(`/api/interview/${sessionId}/summary`);
+        const json = await res.json();
+        const summary = json.data;
+
+        document.getElementById('summaryRoleText').innerText = `${summary.jobRole} (${summary.experienceLevel})`;
+        const scoreBadge = document.getElementById('summaryScoreBadge');
+        scoreBadge.innerText = `Final Score: ${summary.overallScore || 0}/100`;
+        scoreBadge.className = 'score-badge ' + (summary.overallScore >= 80 ? 'score-high' : (summary.overallScore >= 60 ? 'score-mid' : 'score-low'));
+
+        document.getElementById('summaryAdviceBox').innerHTML = (summary.summaryFeedback || 'Well done on completing the session!')
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+        const qList = document.getElementById('summaryQuestionList');
+        qList.innerHTML = '';
+
+        summary.questions.forEach(q => {
+          const item = document.createElement('div');
+          item.className = 'card';
+          item.style.background = 'var(--bg-card)';
+          item.style.marginBottom = '0.75rem';
+          item.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:0.5rem;">
+              <div style="font-weight:700;color:#fff;">Q${q.questionOrder}: ${q.questionText}</div>
+              <span class="badge ${q.score >= 80 ? 'badge-success' : 'badge-warning'}">${q.score || 0}/100</span>
+            </div>
+            <div style="font-size:0.9rem;color:#cbd5e1;margin-bottom:0.5rem;">
+              <strong style="color:#94a3b8;">Your Answer:</strong> ${q.userAnswer || '<em>No answer provided</em>'}
+            </div>
+            <div style="font-size:0.85rem;color:#a5b4fc;margin-bottom:0.5rem;">
+              <strong>Coach Note:</strong> ${q.feedback || 'N/A'}
+            </div>
+          `;
+          qList.appendChild(item);
+        });
+
+      } catch (err) {
+        showToast('Error loading summary: ' + err.message, 'error');
+      }
+    }
+
+    // View History
+    async function loadHistoryView() {
+      hideAllViews();
+      document.getElementById('viewHistory').style.display = 'block';
+
+      try {
+        const res = await authFetch('/api/interview/history');
+        const json = await res.json();
+        const history = json.data;
+
+        const container = document.getElementById('historyTableContainer');
+
+        if (!history || history.length === 0) {
+          container.innerHTML = `<p style="color:var(--text-secondary);text-align:center;padding:2rem;">No previous mock interviews found. Start your first session now!</p>`;
+          return;
+        }
+
+        let html = `
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Role</th>
+                <th>Level</th>
+                <th>Status</th>
+                <th>Score</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        history.forEach(item => {
+          const dateStr = new Date(item.createdAt).toLocaleDateString('en-US', {
+            month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+          });
+          html += `
+            <tr>
+              <td>${dateStr}</td>
+              <td style="font-weight:600;color:#fff;">${item.jobRole}</td>
+              <td><span class="badge badge-primary">${item.experienceLevel}</span></td>
+              <td><span class="badge ${item.status === 'COMPLETED' ? 'badge-success' : 'badge-warning'}">${item.status}</span></td>
+              <td style="font-weight:700;">${item.overallScore != null ? item.overallScore + '/100' : 'In Progress'}</td>
+              <td>
+                <button onclick="loadSummaryView(${item.id})" class="btn btn-secondary" style="padding:0.3rem 0.7rem;font-size:0.8rem;">
+                  Review Report
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+
+      } catch (err) {
+        showToast('Error loading history: ' + err.message, 'error');
+      }
+    }
+
+    // =========================================================================
+    // Speech Recognition (Web Speech API)
+    // =========================================================================
+    const micBtn = document.getElementById('micBtn');
+    const micBtnText = document.getElementById('micBtnText');
+    const speechStatus = document.getElementById('speechStatus');
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        isRecording = true;
+        micBtn.classList.add('recording');
+        micBtnText.innerText = 'Listening... (Click to stop)';
+        speechStatus.innerText = '🎙️ Recording your voice...';
+      };
+
+      recognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          transcript += event.results[i][0].transcript;
+        }
+        if (transcript) {
+          const currentVal = answerInput.value;
+          answerInput.value = currentVal ? currentVal + ' ' + transcript : transcript;
+          const words = answerInput.value.trim().split(/\s+/).filter(Boolean).length;
+          document.getElementById('wordCount').innerText = words;
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.warn('Speech error:', event.error);
+        stopRecording();
+        if (event.error !== 'no-speech') {
+          speechStatus.innerText = 'Mic issue: ' + event.error;
+        }
+      };
+
+      recognition.onend = () => {
+        stopRecording();
+      };
+
+      micBtn.addEventListener('click', () => {
+        if (!isRecording) {
+          try {
+            recognition.start();
+          } catch (e) {
+            console.error(e);
+          }
+        } else {
+          stopRecording();
+        }
+      });
+    } else {
+      micBtn.style.display = 'none';
+      speechStatus.innerText = 'Speech-to-Text not supported in this browser (use Chrome/Edge).';
+    }
+
+    function stopRecording() {
+      isRecording = false;
+      micBtn.classList.remove('recording');
+      micBtnText.innerText = 'Record with Microphone';
+      speechStatus.innerText = '';
+      if (recognition) {
+        try { recognition.stop(); } catch (e) {}
+      }
+    }
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Your Account | AI Interview Coach</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header class="navbar">
+    <a href="/" class="brand">
+      <div class="brand-icon">⚡</div>
+      <span>AI Coach Interview</span>
+    </a>
+    <div id="navbar-auth-section" class="nav-links">
+      <a href="/login.html" class="btn btn-secondary">Log In</a>
+    </div>
+  </header>
+
+  <!-- Register Form -->
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h1>Create Account</h1>
+        <p>Start your AI-powered interview coaching journey</p>
+      </div>
+
+      <form id="register-form">
+        <!-- Profile Image Upload with Preview -->
+        <div class="avatar-upload-container">
+          <div class="avatar-preview-wrap" onclick="document.getElementById('profileImageInput').click();">
+            <img id="avatarPreview" class="avatar-preview" src="https://api.dicebear.com/7.x/bottts/svg?seed=newuser" alt="Avatar Preview" />
+            <div class="avatar-overlay">Upload Photo</div>
+          </div>
+          <span class="avatar-hint">Click image to upload profile photo</span>
+          <input type="file" id="profileImageInput" name="profileImage" accept="image/*" style="display:none;" />
+        </div>
+
+        <!-- Username -->
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" class="form-input" placeholder="e.g. alexdev" required />
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" class="form-input" placeholder="alex@example.com" required />
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" class="form-input" placeholder="At least 6 characters" minlength="6" required />
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <input type="password" id="confirmPassword" class="form-input" placeholder="Repeat your password" minlength="6" required />
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn btn-primary" style="width:100%;margin-top:1rem;padding:0.85rem;">
+          Register with JWT & Profile
+        </button>
+      </form>
+
+      <div style="text-align:center;margin-top:1.5rem;font-size:0.9rem;color:var(--text-secondary);">
+        Already have an account? <a href="/login.html" style="font-weight:600;">Sign in here</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    // Live Avatar Preview
+    const imageInput = document.getElementById('profileImageInput');
+    const avatarPreview = document.getElementById('avatarPreview');
+    const usernameInput = document.getElementById('username');
+
+    imageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        if (file.size > 10 * 1024 * 1024) {
+          showToast('Image size cannot exceed 10MB', 'error');
+          imageInput.value = '';
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          avatarPreview.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Update default avatar seed when username changes if no custom file selected
+    usernameInput.addEventListener('input', () => {
+      if (!imageInput.files || imageInput.files.length === 0) {
+        const seed = usernameInput.value.trim() || 'newuser';
+        avatarPreview.src = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(seed)}`;
+      }
+    });
+
+    // Form Submission
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const username = usernameInput.value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      if (password !== confirmPassword) {
+        showToast('Passwords do not match!', 'error');
+        return;
+      }
+
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Creating account...';
+
+      const formData = new FormData();
+      formData.append('username', username);
+      formData.append('email', email);
+      formData.append('password', password);
+
+      if (imageInput.files && imageInput.files[0]) {
+        formData.append('profileImage', imageInput.files[0]);
+      }
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await res.json();
+
+        if (res.ok && result.success) {
+          setToken(result.data.token);
+          setUser({
+            id: result.data.id,
+            username: result.data.username,
+            email: result.data.email,
+            profileImageUrl: result.data.profileImageUrl,
+            role: result.data.role
+          });
+          showToast('Registration successful! Redirecting to coach dashboard...', 'success');
+          setTimeout(() => {
+            window.location.href = '/dashboard.html';
+          }, 1200);
+        } else {
+          showToast(result.message || 'Registration failed', 'error');
+          submitBtn.disabled = false;
+          submitBtn.innerText = 'Register with JWT & Profile';
+        }
+      } catch (err) {
+        showToast('Network error or server unavailable: ' + err.message, 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Register with JWT & Profile';
+      }
+    });
+  </script>
+</body>
+</html>
+

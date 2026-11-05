@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log In | AI Interview Coach</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header class="navbar">
+    <a href="/" class="brand">
+      <div class="brand-icon">⚡</div>
+      <span>AI Coach Interview</span>
+    </a>
+    <div id="navbar-auth-section" class="nav-links">
+      <a href="/register.html" class="btn btn-primary">Sign Up Free</a>
+    </div>
+  </header>
+
+  <!-- Login Form -->
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h1>Welcome Back</h1>
+        <p>Sign in with your JWT credentials</p>
+      </div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label for="usernameOrEmail">Username or Email</label>
+          <input type="text" id="usernameOrEmail" class="form-input" placeholder="Your username or email" required />
+        </div>
+
+        <div class="form-group">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">
+            <label for="password" style="margin-bottom:0;">Password</label>
+            <a href="/forgot-password.html" style="font-size:0.85rem;">Forgot Password?</a>
+          </div>
+          <input type="password" id="password" class="form-input" placeholder="Enter your password" required />
+        </div>
+
+        <button type="submit" id="loginBtn" class="btn btn-primary" style="width:100%;margin-top:1rem;padding:0.85rem;">
+          Sign In
+        </button>
+      </form>
+
+      <div style="text-align:center;margin-top:1.5rem;font-size:0.9rem;color:var(--text-secondary);">
+        Don't have an account? <a href="/register.html" style="font-weight:600;">Create one free</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    // Check if redirected due to expired token
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('expired')) {
+      showToast('Your session has expired. Please log in again.', 'warning');
+    } else if (urlParams.get('reset') === 'success') {
+      showToast('Password reset successful! Please log in with your new password.', 'success');
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const usernameOrEmail = document.getElementById('usernameOrEmail').value.trim();
+      const password = document.getElementById('password').value;
+      const loginBtn = document.getElementById('loginBtn');
+
+      loginBtn.disabled = true;
+      loginBtn.innerText = 'Signing in...';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usernameOrEmail, password })
+        });
+
+        const result = await res.json();
+
+        if (res.ok && result.success) {
+          setToken(result.data.token);
+          setUser({
+            id: result.data.id,
+            username: result.data.username,
+            email: result.data.email,
+            profileImageUrl: result.data.profileImageUrl,
+            role: result.data.role
+          });
+          showToast('Login successful! Redirecting...', 'success');
+          setTimeout(() => {
+            window.location.href = '/dashboard.html';
+          }, 800);
+        } else {
+          showToast(result.message || 'Invalid username/email or password', 'error');
+          loginBtn.disabled = false;
+          loginBtn.innerText = 'Sign In';
+        }
+      } catch (err) {
+        showToast('Login error: ' + err.message, 'error');
+        loginBtn.disabled = false;
+        loginBtn.innerText = 'Sign In';
+      }
+    });
+  </script>
+</body>
+</html>
+
