@@ -24,7 +24,7 @@ import java.util.*;
 @Service
 public class GeminiAiService {
 
-    @Value("${gemini.api.key:AIzaSyB-tHl-po7N6oYXqmgAQ-vd4NFKMjLPR1M}")
+    @Value("${gemini.api.key:}")
     private String apiKey;
 
     @Value("${gemini.api.model:gemini-1.5-flash}")
